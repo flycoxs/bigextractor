@@ -21,4 +21,4 @@ plt.title("Beats detectados")
 plt.show()
 python src/extractor.py
 
-sudo apt-get update && sudo apt-get install -y ffmpeg
+
