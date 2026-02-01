@@ -19,3 +19,4 @@ librosa.display.waveshow(y, sr=sr)
 plt.vlines(librosa.frames_to_time(beats, sr=sr), -1, 1, color='r')
 plt.title("Beats detectados")
 plt.show()
+python src/extractor.py
