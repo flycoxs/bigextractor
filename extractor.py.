@@ -1,0 +1,28 @@
+import librosa
+import json
+
+def extract_beats(file_path, top_n=10):
+    # Cargar el archivo de audio
+    y, sr = librosa.load(file_path)
+
+    # Detectar tempo y beats
+    tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
+
+    # Convertir los beats a tiempos en segundos
+    times = librosa.frames_to_time(beats, sr=sr)
+
+    # Seleccionar los primeros N beats
+    best_beats = times[:top_n]
+
+    return {"tempo": tempo, "beats": best_beats.tolist()}
+
+if __name__ == "__main__":
+    # Ejecutar el extractor sobre un archivo de ejemplo
+    result = extract_beats("audio.mp3")
+
+    # Guardar los resultados en un archivo JSON
+    with open("beats.json", "w") as f:
+        json.dump(result, f, indent=2)
+
+    print("Tempo estimado:", result["tempo"])
+    print("Beats detectados:", result["beats"])
