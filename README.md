@@ -1,24 +1,37 @@
-# bigextractor
-un extractor de bits de musica
-import librosa
-import librosa.display
-import matplotlib.pyplot as plt
+# Big Extractor
 
-# Cargar audio
-y, sr = librosa.load("tu_audio.mp3")
+Extractor de los mejores "bits" de cada tema (prototipo).
 
-# Detectar beats
-tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
+Características
+- Detecta onsets/pulsos y selecciona segmentos con mayor energía.
+- Guarda segmentos individuales y crea un mix concatenado con crossfades.
+- Script en Python usando librosa + soundfile.
 
-print(f"Tempo estimado: {tempo} BPM")
-print("Beats detectados en frames:", beats)
+Requisitos
+- Python 3.8+
+- ffmpeg (opcional, para pydub concatenation en local)
+- pip packages (ver requirements.txt)
 
-# Visualizar
-plt.figure(figsize=(10, 4))
-librosa.display.waveshow(y, sr=sr)
-plt.vlines(librosa.frames_to_time(beats, sr=sr), -1, 1, color='r')
-plt.title("Beats detectados")
-plt.show()
-python src/extractor.py
+Instalación
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Uso
+```bash
+python extractor/extractor.py input.mp3 --n 5 --seg 6 --out-dir out
+```
+
+Pruebas (local / CI)
+```bash
+python tests/test_run.py
+```
+
+Estructura
+- extractor/: script principal
+- tests/: prueba automática que genera un WAV sintético y ejecuta el extractor
+- .github/workflows/ci.yml: workflow de CI que ejecuta la prueba (si habilitas Actions)
 
 
