@@ -48,4 +48,5 @@ def create_video(job_id: str, image_path: str = None, audio_path: str = None, ou
     if rc != 0:
         raise RuntimeError('ffmpeg falló para job ' + job_id)
 
+    print(f"[{job_id}] Video creado exitosamente en: {out_file}")
     return str(out_file)
