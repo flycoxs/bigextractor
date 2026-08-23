@@ -32,7 +32,7 @@ def create_video(job_id: str, image_path: str = None, audio_path: str = None, ou
     duration = 30
 
     if image_path and audio_path:
-        # repetir audio si es corto y cortar a -t 30; -stream_loop -1 for input loop applies to video/image input, for audio we can use -stream_loop -1 on image and -shortest
+        # Imagen + audio: ajusta audio a 30s o usa -shortest
         cmd = f"ffmpeg -y -loop 1 -i {shlex.quote(str(image_path))} -i {shlex.quote(str(audio_path))} -c:v libx264 -c:a aac -b:a 192k -t {duration} -pix_fmt yuv420p -shortest {shlex.quote(str(out_file))}"
     elif image_path and not audio_path:
         # Imagen + audio nulo (anullsrc)
