@@ -1,5 +1,6 @@
 from rq import Queue
 from redis import Redis
+import os
 
 # Este archivo ya no se usa por defecto; usamos `rq worker` en docker-compose.
 # Lo queda para referencia.

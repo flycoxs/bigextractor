@@ -1,6 +1,6 @@
 # BigExtractor - Video MVP
 
-Prototipo para generar videos de 30 segundos usando FastAPI + RQ + ffmpeg.
+Proto tipo para generar videos de 30 segundos usando FastAPI + RQ + ffmpeg.
 
 Arquitectura mínima incluida:
 - FastAPI backend para subir assets y crear jobs
