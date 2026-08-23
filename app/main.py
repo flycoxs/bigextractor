@@ -20,12 +20,75 @@ BASE_OUTPUT = Path('/app/outputs')
 BASE_UPLOAD.mkdir(parents=True, exist_ok=True)
 BASE_OUTPUT.mkdir(parents=True, exist_ok=True)
 
+# Montar carpeta de outputs
 app.mount("/outputs", StaticFiles(directory=str(BASE_OUTPUT)), name="outputs")
+
+# Montar carpeta de static files
+STATIC_DIR = Path('/app/static')
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get('/', response_class=HTMLResponse)
 async def homepage():
-    html = Path('static/index.html').read_text()
-    return HTMLResponse(content=html)
+    try:
+        html_path = Path('/app/static/index.html')
+        if html_path.exists():
+            html = html_path.read_text()
+            return HTMLResponse(content=html)
+    except Exception as e:
+        print(f"Error loading index.html: {e}")
+    
+    # Fallback HTML si no existe el archivo
+    return HTMLResponse(content="""
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>BigExtractor - Video MVP</title>
+      </head>
+      <body>
+        <h1>Generar video de 30s</h1>
+        <form id="form">
+          <label>Imagen (jpg/png): <input type="file" id="image" name="image" accept="image/*" /></label><br/>
+          <label>Audio (mp3/wav): <input type="file" id="audio" name="audio" accept="audio/*" /></label><br/>
+          <button type="submit">Crear video</button>
+        </form>
+        <div id="status"></div>
+
+        <script>
+          const form = document.getElementById('form');
+          const status = document.getElementById('status');
+          form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = new FormData();
+            const image = document.getElementById('image').files[0];
+            const audio = document.getElementById('audio').files[0];
+            if (image) data.append('image', image);
+            if (audio) data.append('audio', audio);
+            status.innerText = 'Encolando...';
+            const res = await fetch('/create-video', { method: 'POST', body: data });
+            const j = await res.json();
+            const jobId = j.job_id;
+            status.innerText = `Job creado: ${jobId}`;
+            // Polling
+            const check = async () => {
+              const sj = await fetch(`/jobs/${jobId}`);
+              const s = await sj.json();
+              status.innerText = JSON.stringify(s);
+              if (s.status === 'finished' && s.download_url) {
+                status.innerHTML = `Listo: <a href="${s.download_url}" target="_blank">Descargar</a>`;
+              } else if (s.status === 'failed') {
+                status.innerText = 'Error: ' + (s.error || 'unknown');
+              } else {
+                setTimeout(check, 2000);
+              }
+            }
+            setTimeout(check, 2000);
+          });
+        </script>
+      </body>
+    </html>
+    """)
 
 @app.post('/create-video')
 async def create_video(image: Optional[UploadFile] = File(None), audio: Optional[UploadFile] = File(None)):
@@ -55,18 +118,18 @@ async def get_job(job_id: str):
     from rq.job import Job
     try:
         job = Job.fetch(job_id, connection=redis_conn)
-    except Exception:
-        return JSONResponse({'error': 'job not found'}, status_code=404)
+    except Exception as e:
+        return JSONResponse({'error': f'job not found: {str(e)}'}, status_code=404)
 
     if job.is_finished:
-        candidate = BASE_OUTPUT / job.args[0] / (job_id + '.mp4') if job.args else BASE_OUTPUT / job_id / (job_id + '.mp4')
-        candidate = BASE_OUTPUT / job_id / (job_id + '.mp4')
-        if candidate.exists():
+        output_dir = BASE_OUTPUT / job_id
+        video_path = output_dir / (job_id + '.mp4')
+        
+        if video_path.exists():
             return JSONResponse({'status': 'finished', 'download_url': f'/outputs/{job_id}/{job_id}.mp4'})
         else:
-            folder = BASE_OUTPUT / job_id
-            if folder.exists():
-                files = list(folder.glob('*.mp4'))
+            if output_dir.exists():
+                files = list(output_dir.glob('*.mp4'))
                 if files:
                     name = files[0].name
                     return JSONResponse({'status': 'finished', 'download_url': f'/outputs/{job_id}/{name}'})
@@ -77,3 +140,7 @@ async def get_job(job_id: str):
         return JSONResponse({'status': 'failed', 'error': str(job.exc_info)})
     else:
         return JSONResponse({'status': 'started'})
+
+@app.get('/health')
+async def health():
+    return JSONResponse({'status': 'ok'})
