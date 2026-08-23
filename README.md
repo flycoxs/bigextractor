@@ -1,3 +1,4 @@
+video-mvp
 # BigExtractor - Video MVP
 
 Proto tipo para generar videos de 30 segundos usando FastAPI + RQ + ffmpeg.
@@ -26,3 +27,15 @@ Limitaciones MVP:
 - Soporta 1 imagen + audio (opcional). Si no hay audio, genera audio silencioso para alcanzar 30s.
 - No autenticación, sin límites de uso.
 - No TTS ni generación de imágenes aún.
+
+# Video AI Extension
+
+Genera videos de 30 segundos con IA usando FastAPI, ffmpeg y modelos de texto→imagen + voz.
+
+## Instalación
+```bash
+pip install -r requirements.txt
+
+
+
+main
