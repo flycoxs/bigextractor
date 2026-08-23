@@ -5,3 +5,4 @@ rq
 python-multipart
 pydantic
 aiofiles
+flask
