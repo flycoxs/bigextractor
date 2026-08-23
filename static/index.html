@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>BigExtractor - Video MVP</title>
+  </head>
+  <body>
+    <h1>Generar video de 30s</h1>
+    <form id="form">
+      <label>Imagen (jpg/png): <input type="file" id="image" name="image" accept="image/*" /></label><br/>
+      <label>Audio (mp3/wav): <input type="file" id="audio" name="audio" accept="audio/*" /></label><br/>
+      <button type="submit">Crear video</button>
+    </form>
+    <div id="status"></div>
+
+    <script>
+      const form = document.getElementById('form');
+      const status = document.getElementById('status');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = new FormData();
+        const image = document.getElementById('image').files[0];
+        const audio = document.getElementById('audio').files[0];
+        if (image) data.append('image', image);
+        if (audio) data.append('audio', audio);
+        status.innerText = 'Encolando...';
+        const res = await fetch('/create-video', { method: 'POST', body: data });
+        const j = await res.json();
+        const jobId = j.job_id;
+        status.innerText = `Job creado: ${jobId}`;
+        // Polling
+        const check = async () => {
+          const sj = await fetch(`/jobs/${jobId}`);
+          const s = await sj.json();
+          status.innerText = JSON.stringify(s);
+          if (s.status === 'finished' && s.download_url) {
+            status.innerHTML = `Listo: <a href="${s.download_url}" target="_blank">Descargar</a>`;
+          } else if (s.status === 'failed') {
+            status.innerText = 'Error: ' + (s.error || 'unknown');
+          } else {
+            setTimeout(check, 2000);
+          }
+        }
+        setTimeout(check, 2000);
+      });
+    </script>
+  </body>
+</html>

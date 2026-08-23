@@ -1,4 +1,7 @@
-librosa==0.10.1
-numpy==1.26.4
-scipy==1.12.0
-matplotlib==3.8.2
+fastapi
+uvicorn[standard]
+redis
+rq
+python-multipart
+pydantic
+aiofiles

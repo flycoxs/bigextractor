@@ -1,37 +1,28 @@
-# Big Extractor
+# BigExtractor - Video MVP
 
-Extractor de los mejores "bits" de cada tema (prototipo).
+Prototipo para generar videos de 30 segundos usando FastAPI + RQ + ffmpeg.
 
-Características
-- Detecta onsets/pulsos y selecciona segmentos con mayor energía.
-- Guarda segmentos individuales y crea un mix concatenado con crossfades.
-- Script en Python usando librosa + soundfile.
+Arquitectura mínima incluida:
+- FastAPI backend para subir assets y crear jobs
+- Redis + RQ para cola y worker
+- Worker que ejecuta ffmpeg para producir MP4 de 30s
+- Frontend simple para subir imagen/audio y descargar el resultado
+- docker-compose para correr todo localmente
 
-Requisitos
-- Python 3.8+
-- ffmpeg (opcional, para pydub concatenation en local)
-- pip packages (ver requirements.txt)
+Requisitos locales:
+- Docker + docker-compose (recomendado)
+- En producción: S3 o almacenamiento permanente
 
-Instalación
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+Endpoints principales:
+- POST /create-video -> sube archivos y encola job, devuelve job_id
+- GET /jobs/{id} -> estado y URL de descarga cuando esté listo
+- GET /outputs/{file} -> archivos generados (solo para desarrollo)
 
-Uso
-```bash
-python extractor/extractor.py input.mp3 --n 5 --seg 6 --out-dir out
-```
+Cómo probar (local con docker-compose):
+1. docker compose up --build
+2. Abrir http://localhost:8000 y usar el formulario
 
-Pruebas (local / CI)
-```bash
-python tests/test_run.py
-```
-
-Estructura
-- extractor/: script principal
-- tests/: prueba automática que genera un WAV sintético y ejecuta el extractor
-- .github/workflows/ci.yml: workflow de CI que ejecuta la prueba (si habilitas Actions)
-
-
+Limitaciones MVP:
+- Soporta 1 imagen + audio (opcional). Si no hay audio, genera audio silencioso para alcanzar 30s.
+- No autenticación, sin límites de uso.
+- No TTS ni generación de imágenes aún.
