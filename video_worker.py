@@ -20,10 +20,15 @@ def run_command(cmd):
 
 def create_video(job_id: str, image_path: str = None, audio_path: str = None, output_name: str = None):
     """
+ video-mvp
     Genera un video MP4 de 30 segundos.
     - Si hay imagen: la fija durante 30s.
     - Si hay audio: lo usa (loop si es necesario para alcanzar 30s).
     - Si no hay audio: añade pista silenciosa.
+
+    Genera un video MP4 de 30 segundos (SIN AUDIO).
+    - Si hay imagen: la fija durante 30s sin audio.
+    - Si no hay imagen: fondo negro sin audio. main
     """
     out_dir = BASE_OUTPUT / job_id
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -31,6 +36,7 @@ def create_video(job_id: str, image_path: str = None, audio_path: str = None, ou
 
     duration = 30
 
+ video-mvp
     if image_path and audio_path:
         # Imagen + audio: ajusta audio a 30s o usa -shortest
         cmd = f"ffmpeg -y -loop 1 -i {shlex.quote(str(image_path))} -i {shlex.quote(str(audio_path))} -c:v libx264 -c:a aac -b:a 192k -t {duration} -pix_fmt yuv420p -shortest {shlex.quote(str(out_file))}"
@@ -44,9 +50,20 @@ def create_video(job_id: str, image_path: str = None, audio_path: str = None, ou
         # Ningún asset: generar video negro + silencio
         cmd = f"ffmpeg -y -f lavfi -i color=size=1280x720:rate=25:color=black -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -c:v libx264 -c:a aac -t {duration} -pix_fmt yuv420p -shortest {shlex.quote(str(out_file))}"
 
+    if image_path:
+        # Solo imagen, sin audio
+        cmd = f"ffmpeg -y -loop 1 -i {shlex.quote(str(image_path))} -c:v libx264 -t {duration} -pix_fmt yuv420p {shlex.quote(str(out_file))}"
+    else:
+        # Video negro sin audio
+        cmd = f"ffmpeg -y -f lavfi -i color=size=1280x720:rate=25:color=black -t {duration} -pix_fmt yuv420p {shlex.quote(str(out_file))}"
+ main
+
     rc = run_command(cmd)
     if rc != 0:
         raise RuntimeError('ffmpeg falló para job ' + job_id)
 
+ video-mvp
     print(f"[{job_id}] Video creado exitosamente en: {out_file}")
+
+main
     return str(out_file)
